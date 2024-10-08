@@ -2,6 +2,7 @@ package authentication
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -47,6 +48,7 @@ func Authenticate(authServiceURL string) models.Middleware {
 			// Отправляем запрос к сервису авторизации
 			resp, err := client.Do(req)
 			if err != nil {
+				log.Println(err)
 				http.Error(w, "Unauthorized: auth service error", http.StatusUnauthorized)
 				return
 			}
