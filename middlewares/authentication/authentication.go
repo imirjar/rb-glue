@@ -4,23 +4,10 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"strings"
 	"time"
-
-	"github.com/imirjar/rb-glue/models"
 )
 
-// AuthServiceResponse представляет структуру ответа от сервиса авторизации
-type AuthServiceResponse struct {
-	Valid  bool     `json:"valid"`
-	User   string   `json:"user,omitempty"`
-	Groups []string `json:"groups,omitempty"`
-	Roles  []string `json:"roles,omitempty"`
-
-	// Добавьте другие поля по необходимости
-}
-
-func Authenticate(authServiceURL string) models.Middleware {
+func Authenticate(authServiceURL string, id string, roles, groups []string) func(http.Handler) http.Handler {
 	client := &http.Client{
 		Timeout: 5 * time.Second, // Устанавливаем таймаут для запросов к сервису авторизации
 	}
@@ -33,7 +20,7 @@ func Authenticate(authServiceURL string) models.Middleware {
 				return
 			}
 
-			token = strings.TrimPrefix(token, "Bearer ")
+			// token = strings.TrimPrefix(token, "Bearer ")
 
 			// Создаем запрос к сервису авторизации
 			req, err := http.NewRequest("POST", authServiceURL, nil)
@@ -59,23 +46,38 @@ func Authenticate(authServiceURL string) models.Middleware {
 				return
 			}
 
-			// Читаем и декодируем ответ от сервиса авторизации
-			var authResp AuthServiceResponse
-			if err := json.NewDecoder(resp.Body).Decode(&authResp); err != nil {
+			user := User{}
+			if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
 
-			if !authResp.Valid {
-				http.Error(w, "Unauthorized: invalid token", http.StatusUnauthorized)
-				return
+			if id != "" {
+				if user.ID != id {
+					http.Error(w, "Unauthorized: Wrong user", http.StatusForbidden)
+					return
+				}
 			}
 
-			// Можно добавить информацию о пользователе в контекст, если необходимо
-			// ctx := context.WithValue(r.Context(), "user", authResp.User)
-			// next.ServeHTTP(w, r.WithContext(ctx))
+			if len(groups) >= 0 {
+				for _, g := range groups {
+					if !user.hasGroup(g) {
+						http.Error(w, "Unauthorized: Roles or Groups are missing", http.StatusForbidden)
+						return
+					}
+				}
+			}
 
-			// Переходим к следующему обработчику
+			if len(roles) >= 0 {
+				for _, r := range roles {
+					if !user.hasRole(r) {
+						http.Error(w, "Unauthorized: Roles or Groups are missing", http.StatusForbidden)
+						return
+					}
+				}
+
+			}
+
 			next.ServeHTTP(w, r)
 		})
 	}
