@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func REST(contype string) func(next http.Handler) http.Handler {
+func CheckType(contype string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			getContype := r.Header.Get("Content-Type")

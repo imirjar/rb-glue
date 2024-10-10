@@ -7,11 +7,16 @@ import (
 	"time"
 )
 
-func Authenticate(authServiceURL string, user User) func(http.Handler) http.Handler {
+// Compare JWT token payload with expected user ID, Groups and Roles
+// if no expected -> just validate the JWT token on the auth authService
+func Authenticate(url string, params UserParams) func(http.Handler) http.Handler {
+
+	// Custom client
 	client := &http.Client{
 		Timeout: 5 * time.Second, // Устанавливаем таймаут для запросов к сервису авторизации
 	}
 
+	// Return auth middleware
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			token := r.Header.Get("Authorization")
@@ -20,19 +25,17 @@ func Authenticate(authServiceURL string, user User) func(http.Handler) http.Hand
 				return
 			}
 
-			// token = strings.TrimPrefix(token, "Bearer ")
-
-			// Создаем запрос к сервису авторизации
-			req, err := http.NewRequest("POST", authServiceURL, nil)
+			// Make request to auth service
+			req, err := http.NewRequest("POST", url, nil)
 			if err != nil {
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
 
-			// Добавляем токен в заголовки запроса
+			// Add token in header
 			req.Header.Set("Authorization", token)
 
-			// Отправляем запрос к сервису авторизации
+			// Make req
 			resp, err := client.Do(req)
 			if err != nil {
 				log.Println(err)
@@ -46,31 +49,33 @@ func Authenticate(authServiceURL string, user User) func(http.Handler) http.Hand
 				return
 			}
 
-			user := User{}
-			if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
+			if err := json.NewDecoder(resp.Body).Decode(&params); err != nil {
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 				return
 			}
 
-			if user.ID != "" {
-				if user.ID != user.ID {
+			// If a user must be the user
+			if params.ID != "" {
+				if params.ID != params.ID {
 					http.Error(w, "Unauthorized: Wrong user", http.StatusForbidden)
 					return
 				}
 			}
 
-			if len(user.Groups) >= 0 {
-				for _, g := range user.Groups {
-					if !user.hasGroup(g) {
+			// If user must be at least in one of the groups
+			if len(params.Groups) >= 0 {
+				for _, g := range params.Groups {
+					if !params.hasGroup(g) {
 						http.Error(w, "Unauthorized: Roles or Groups are missing", http.StatusForbidden)
 						return
 					}
 				}
 			}
 
-			if len(user.Roles) >= 0 {
-				for _, r := range user.Roles {
-					if !user.hasRole(r) {
+			// If user must has at least in one of the groups
+			if len(params.Roles) >= 0 {
+				for _, r := range params.Roles {
+					if !params.hasRole(r) {
 						http.Error(w, "Unauthorized: Roles or Groups are missing", http.StatusForbidden)
 						return
 					}

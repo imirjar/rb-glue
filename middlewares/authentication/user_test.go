@@ -11,13 +11,13 @@ func TestUser_hasGroup(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		user User
+		user UserParams
 		args args
 		want bool
 	}{
 		{
 			name: "ok",
-			user: User{
+			user: UserParams{
 				ID:     "1",
 				Groups: []string{"admin"},
 			},
@@ -28,7 +28,7 @@ func TestUser_hasGroup(t *testing.T) {
 		},
 		{
 			name: "no groups",
-			user: User{
+			user: UserParams{
 				ID:     "1",
 				Groups: []string{},
 			},
@@ -39,7 +39,7 @@ func TestUser_hasGroup(t *testing.T) {
 		},
 		{
 			name: "other groups",
-			user: User{
+			user: UserParams{
 				ID:     "1",
 				Groups: []string{"manager"},
 			},
@@ -52,7 +52,7 @@ func TestUser_hasGroup(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u := &User{
+			u := &UserParams{
 				ID:     tt.user.ID,
 				Groups: tt.user.Groups,
 				Roles:  tt.user.Roles,
@@ -71,13 +71,13 @@ func TestUser_hasRole(t *testing.T) {
 	}
 	tests := []struct {
 		name string
-		user User
+		user UserParams
 		args args
 		want bool
 	}{
 		{
 			name: "ok",
-			user: User{
+			user: UserParams{
 				ID:    "1",
 				Roles: []string{"admin"},
 			},
@@ -88,7 +88,7 @@ func TestUser_hasRole(t *testing.T) {
 		},
 		{
 			name: "no roles",
-			user: User{
+			user: UserParams{
 				ID:    "1",
 				Roles: []string{},
 			},
@@ -99,7 +99,7 @@ func TestUser_hasRole(t *testing.T) {
 		},
 		{
 			name: "other roles",
-			user: User{
+			user: UserParams{
 				ID:    "1",
 				Roles: []string{"manager"},
 			},
@@ -112,7 +112,7 @@ func TestUser_hasRole(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			u := &User{
+			u := &UserParams{
 				ID:     tt.user.ID,
 				Groups: tt.user.Groups,
 				Roles:  tt.user.Roles,
