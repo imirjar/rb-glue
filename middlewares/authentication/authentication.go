@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func Authenticate(authServiceURL string, id string, roles, groups []string) func(http.Handler) http.Handler {
+func Authenticate(authServiceURL string, user User) func(http.Handler) http.Handler {
 	client := &http.Client{
 		Timeout: 5 * time.Second, // Устанавливаем таймаут для запросов к сервису авторизации
 	}
@@ -52,15 +52,15 @@ func Authenticate(authServiceURL string, id string, roles, groups []string) func
 				return
 			}
 
-			if id != "" {
-				if user.ID != id {
+			if user.ID != "" {
+				if user.ID != user.ID {
 					http.Error(w, "Unauthorized: Wrong user", http.StatusForbidden)
 					return
 				}
 			}
 
-			if len(groups) >= 0 {
-				for _, g := range groups {
+			if len(user.Groups) >= 0 {
+				for _, g := range user.Groups {
 					if !user.hasGroup(g) {
 						http.Error(w, "Unauthorized: Roles or Groups are missing", http.StatusForbidden)
 						return
@@ -68,8 +68,8 @@ func Authenticate(authServiceURL string, id string, roles, groups []string) func
 				}
 			}
 
-			if len(roles) >= 0 {
-				for _, r := range roles {
+			if len(user.Roles) >= 0 {
+				for _, r := range user.Roles {
 					if !user.hasRole(r) {
 						http.Error(w, "Unauthorized: Roles or Groups are missing", http.StatusForbidden)
 						return

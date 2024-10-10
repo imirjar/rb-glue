@@ -5,23 +5,19 @@ import (
 )
 
 func TestUser_hasGroup(t *testing.T) {
-	type fields struct {
-		ID     string
-		Groups []string
-		Roles  []string
-	}
+
 	type args struct {
 		group string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   bool
+		name string
+		user User
+		args args
+		want bool
 	}{
 		{
 			name: "ok",
-			fields: fields{
+			user: User{
 				ID:     "1",
 				Groups: []string{"admin"},
 			},
@@ -32,7 +28,7 @@ func TestUser_hasGroup(t *testing.T) {
 		},
 		{
 			name: "no groups",
-			fields: fields{
+			user: User{
 				ID:     "1",
 				Groups: []string{},
 			},
@@ -43,7 +39,7 @@ func TestUser_hasGroup(t *testing.T) {
 		},
 		{
 			name: "other groups",
-			fields: fields{
+			user: User{
 				ID:     "1",
 				Groups: []string{"manager"},
 			},
@@ -57,9 +53,9 @@ func TestUser_hasGroup(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := &User{
-				ID:     tt.fields.ID,
-				Groups: tt.fields.Groups,
-				Roles:  tt.fields.Roles,
+				ID:     tt.user.ID,
+				Groups: tt.user.Groups,
+				Roles:  tt.user.Roles,
 			}
 			if got := u.hasGroup(tt.args.group); got != tt.want {
 				t.Errorf("User.hasGroup() = %v, want %v", got, tt.want)
@@ -69,23 +65,19 @@ func TestUser_hasGroup(t *testing.T) {
 }
 
 func TestUser_hasRole(t *testing.T) {
-	type fields struct {
-		ID     string
-		Groups []string
-		Roles  []string
-	}
+
 	type args struct {
 		role string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   bool
+		name string
+		user User
+		args args
+		want bool
 	}{
 		{
 			name: "ok",
-			fields: fields{
+			user: User{
 				ID:    "1",
 				Roles: []string{"admin"},
 			},
@@ -96,7 +88,7 @@ func TestUser_hasRole(t *testing.T) {
 		},
 		{
 			name: "no roles",
-			fields: fields{
+			user: User{
 				ID:    "1",
 				Roles: []string{},
 			},
@@ -107,7 +99,7 @@ func TestUser_hasRole(t *testing.T) {
 		},
 		{
 			name: "other roles",
-			fields: fields{
+			user: User{
 				ID:    "1",
 				Roles: []string{"manager"},
 			},
@@ -121,9 +113,9 @@ func TestUser_hasRole(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			u := &User{
-				ID:     tt.fields.ID,
-				Groups: tt.fields.Groups,
-				Roles:  tt.fields.Roles,
+				ID:     tt.user.ID,
+				Groups: tt.user.Groups,
+				Roles:  tt.user.Roles,
 			}
 			if got := u.hasRole(tt.args.role); got != tt.want {
 				t.Errorf("User.hasRole() = %v, want %v", got, tt.want)
